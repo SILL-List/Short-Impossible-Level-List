@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SILL — Short Impossible Levels List</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0b0a12;
+    --bg-panel: #131120;
+    --bg-panel-2: #17142a;
+    --line: #2a2540;
+    --cyan: #37f0ff;
+    --magenta: #ff2f8f;
+    --orange: #ffb020;
+    --text: #e9e6f5;
+    --text-dim: #8d87ac;
+    --text-faint: #5c5678;
+  }
+
+  *{ box-sizing: border-box; margin:0; padding:0; }
+
+  html{ scroll-behavior: smooth; }
+
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* ambient spike-grid backdrop */
+  body::before{
+    content:'';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 48px 48px;
+    opacity: 0.12;
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after{
+    content:'';
+    position: fixed;
+    top: -20%; left: 50%;
+    width: 900px; height: 900px;
+    transform: translateX(-50%);
+    background: radial-gradient(circle, rgba(55,240,255,0.10), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap{ position: relative; z-index: 1; max-width: 980px; margin: 0 auto; padding: 0 24px 120px; }
+
+  /* ---------- SIDE DECORATION (wide screens) ---------- */
+  .side-deco{
+    position: fixed;
+    top: 0;
+    height: 100vh;
+    width: 220px;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+    display: none;
+    -webkit-mask-image: linear-gradient(180deg, transparent, black 12%, black 88%, transparent);
+    mask-image: linear-gradient(180deg, transparent, black 12%, black 88%, transparent);
+  }
+  .side-deco.left{ left: 0; }
+  .side-deco.right{ right: 0; }
+
+  .side-deco svg{ width: 100%; height: 100%; }
+
+  @media (min-width: 1240px){
+    .side-deco{ display: block; }
+  }
+
+  /* ---------- HEADER ---------- */
+  header{ padding: 64px 0 40px; text-align: center; }
+
+  .eyebrow{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.25em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .eyebrow span{ color: var(--cyan); }
+
+  h1{
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: clamp(48px, 10vw, 92px);
+    line-height: 0.95;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #ffffff 0%, #cfc9ea 60%, var(--cyan) 140%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 60px rgba(55,240,255,0.15);
+  }
+
+  h1 .accent{
+    background: linear-gradient(90deg, var(--cyan), var(--magenta));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .subtitle{
+    max-width: 560px;
+    margin: 22px auto 0;
+    color: var(--text-dim);
+    font-size: 15.5px;
+    line-height: 1.6;
+  }
+
+  .rules-strip{
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 30px;
+  }
+  .rule-chip{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    border: 1px solid var(--line);
+    background: var(--bg-panel);
+    color: var(--text-dim);
+    padding: 7px 14px;
+    border-radius: 3px;
+    position: relative;
+  }
+  .rule-chip b{ color: var(--cyan); font-weight: 600; }
+
+  nav.tabs{
+    display:flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 40px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-size: 14px;
+  }
+  nav.tabs a{
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 10px 18px;
+    border: 1px solid transparent;
+  }
+  nav.tabs a.active{
+    color: var(--bg);
+    background: var(--cyan);
+    border-radius: 2px;
+  }
+  nav.tabs a:not(.active):hover{ color: var(--text); }
+
+  .search-wrap{
+    position: relative;
+    max-width: 420px;
+    margin: 34px auto 0;
+  }
+  .search-icon{
+    position: absolute;
+    left: 14px; top: 50%;
+    transform: translateY(-50%);
+    width: 16px; height: 16px;
+    color: var(--text-faint);
+    pointer-events: none;
+  }
+  .search-input{
+    width: 100%;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 12px 16px 12px 40px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+    transition: border-color .18s ease;
+  }
+  .search-input::placeholder{ color: var(--text-faint); }
+  .search-input:focus{ border-color: var(--cyan); }
+
+  /* ---------- LIST ---------- */
+  .list-section{ margin-top: 56px; }
+
+  .col-labels{
+    display: grid;
+    grid-template-columns: 64px 1fr 130px 110px 130px 90px;
+    padding: 0 20px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .col-labels span:nth-child(2){ padding-left: 4px; }
+
+  .entry{
+    display: grid;
+    grid-template-columns: 64px 1fr 130px 110px 130px 90px;
+    align-items: center;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    margin-bottom: 10px;
+    padding: 14px 20px;
+    transition: border-color .18s ease, transform .18s ease, background .18s ease;
+    cursor: pointer;
+  }
+  .entry:hover{
+    border-color: var(--cyan);
+    transform: translateX(4px);
+    background: var(--bg-panel-2);
+  }
+
+  .rank{
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+  }
+  .rank svg{ width: 16px; height: 16px; flex-shrink: 0; }
+
+  .rank .crown{
+    position: absolute;
+    top: -17px;
+    left: 2px;
+    width: 18px; height: 18px;
+    color: var(--orange);
+    filter: drop-shadow(0 0 4px rgba(255,176,32,0.6));
+  }
+  .entry:nth-child(-n+3) .rank{ color: var(--bg); }
+  .entry:nth-child(-n+3) .rank svg polygon{ fill: var(--cyan); }
+  .entry:nth-child(-n+3) .rank{ color: var(--cyan); }
+
+  .level-cell{ display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .thumb{
+    width: 64px; height: 40px;
+    border-radius: 4px;
+    background:
+      repeating-linear-gradient(135deg, #1c1834, #1c1834 6px, #221d3e 6px, #221d3e 12px);
+    border: 1px solid var(--line);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--text-faint);
+    letter-spacing: 0.05em;
+  }
+  .level-info{ min-width: 0; }
+  .level-name{
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .level-creator{
+    font-size: 12.5px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .stat{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .stat b{ color: var(--text); font-weight: 600; }
+  .stat.cps b{ color: var(--magenta); }
+  .stat.mem b{ color: var(--orange); }
+
+  .verifier{
+    font-size: 12.5px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .length-pill{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--text-dim);
+    border: 1px solid var(--line);
+    padding: 4px 8px;
+    border-radius: 12px;
+    text-align: center;
+    justify-self: start;
+  }
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    margin-top: 80px;
+    text-align: center;
+    padding-top: 30px;
+    border-top: 1px solid var(--line);
+  }
+  footer p{ color: var(--text-faint); font-size: 12.5px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; }
+  footer a{ color: var(--cyan); text-decoration: none; }
+  footer a:hover{ text-decoration: underline; }
+
+  .discord-cta{
+    display: inline-block;
+    margin-top: 18px;
+    padding: 12px 26px;
+    background: linear-gradient(90deg, var(--cyan), var(--magenta));
+    color: var(--bg);
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: 14px;
+    text-decoration: none;
+    border-radius: 4px;
+  }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 760px){
+    .col-labels{ display: none; }
+    .entry{
+      grid-template-columns: 40px 1fr;
+      grid-template-areas:
+        "rank level"
+        "rank stats";
+      row-gap: 8px;
+    }
+    .rank{ grid-area: rank; font-size: 18px; }
+    .level-cell{ grid-area: level; }
+    .stat, .verifier, .length-pill{ display: none; }
+    .thumb{ width: 52px; height: 34px; }
+  }
+</style>
+</head>
+<body>
+<div class="side-deco left"><svg viewBox="0 0 220 1000" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><line x1="200" y1="0" x2="200" y2="1000" stroke="var(--line)" stroke-width="1"/><polygon points="10.25,50 69.75,50 40,-20" fill="var(--magenta)" opacity="0.19"/><polygon points="21.3,129 58.7,129 40,85" fill="var(--cyan)" opacity="0.21"/><polygon points="25.125,218 54.875,218 40,183" fill="var(--cyan)" opacity="0.39"/><polygon points="25.125,274 54.875,274 40,239" fill="var(--cyan)" opacity="0.24"/><polygon points="22.150000000000002,371 57.849999999999994,371 40,329" fill="var(--magenta)" opacity="0.44"/><polygon points="15.350000000000001,463 64.65,463 40,405" fill="var(--cyan)" opacity="0.39"/><polygon points="15.775000000000002,550 64.225,550 40,493" fill="var(--cyan)" opacity="0.29"/><polygon points="18.325,634 61.675,634 40,583" fill="var(--magenta)" opacity="0.19"/><polygon points="17.900000000000002,712 62.099999999999994,712 40,660" fill="var(--magenta)" opacity="0.49"/><polygon points="14.925,793 65.075,793 40,734" fill="var(--magenta)" opacity="0.36"/><polygon points="12.375,883 67.625,883 40,818" fill="var(--magenta)" opacity="0.27"/><polygon points="22.150000000000002,981 57.849999999999994,981 40,939" fill="var(--cyan)" opacity="0.43"/></svg></div>
+<div class="side-deco right"><svg viewBox="0 0 220 1000" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><line x1="20" y1="0" x2="20" y2="1000" stroke="var(--line)" stroke-width="1"/><polygon points="158.75,30 201.25,30 180,-20" fill="var(--magenta)" opacity="0.53"/><polygon points="165.55,87 194.45,87 180,53" fill="var(--cyan)" opacity="0.48"/><polygon points="151.525,197 208.475,197 180,130" fill="var(--cyan)" opacity="0.17"/><polygon points="165.125,254 194.875,254 180,219" fill="var(--cyan)" opacity="0.32"/><polygon points="165.125,324 194.875,324 180,289" fill="var(--cyan)" opacity="0.37"/><polygon points="164.275,417 195.725,417 180,380" fill="var(--cyan)" opacity="0.53"/><polygon points="151.525,540 208.475,540 180,473" fill="var(--cyan)" opacity="0.31"/><polygon points="152.375,627 207.625,627 180,562" fill="var(--magenta)" opacity="0.49"/><polygon points="163.425,712 196.575,712 180,673" fill="var(--magenta)" opacity="0.37"/><polygon points="162.575,808 197.425,808 180,767" fill="var(--cyan)" opacity="0.19"/><polygon points="164.7,887 195.3,887 180,851" fill="var(--cyan)" opacity="0.37"/><polygon points="165.975,976 194.025,976 180,943" fill="var(--magenta)" opacity="0.4"/></svg></div>
+
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">geometry dash &nbsp;·&nbsp; sub-30-second gauntlet <span>list</span></div>
+    <h1>S<span class="accent">ILL</span></h1>
+    <p class="subtitle">Short Impossible Level List.</p>
+
+    <div class="rules-strip">
+      <div class="rule-chip"><b>≤17</b> CPS ceiling</div>
+      <div class="rule-chip"><b>&lt;30s</b> completion time</div>
+      <div class="rule-chip"><b>≤15s</b> total memory</div>
+      <div class="rule-chip">must be <b>bottable</b></div>
+      <div class="rule-chip">rated-quality <b>decoration</b></div>
+    </div>
+
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" class="search-icon"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" fill="none"/><line x1="16.5" y1="16.5" x2="22" y2="22" stroke="currentColor" stroke-width="2"/></svg>
+      <input type="text" id="searchInput" class="search-input" placeholder="Search the list...">
+    </div>
+
+    <nav class="tabs">
+      <a href="#" class="active">List</a>
+      <a href="#">Rules</a>
+      <a href="https://discord.gg/V3xEqNBc6D" target="_blank">Submit</a>
+    </nav>
+  </header>
+
+  <div class="list-section">
+    <div class="col-labels">
+      <span>#</span>
+      <span>Level</span>
+      <span>CPS</span>
+      <span>Memory</span>
+      <span>Verifier</span>
+      <span>Length</span>
+    </div>
+
+    <!-- entries -->
+
+    <div class="entry first-place">
+      <div class="rank">
+        <svg viewBox="0 0 24 24" class="crown"><path d="M3 8l4 3 5-6 5 6 4-3-2 10H5L3 8z" fill="currentColor"/></svg>
+        <svg viewBox="0 0 24 24"><polygon points="12,2 22,22 2,22" fill="currentColor"/></svg>1</div>
+      <div class="level-cell">
+        <div class="thumb">N/A</div>
+        <div class="level-info">
+          <div class="level-name">Placement Holder</div>
+          <div class="level-creator">by N/A</div>
+        </div>
+      </div>
+      <div class="stat cps">peak <b>N/A</b></div>
+      <div class="stat mem"><b>N/A</b></div>
+      <div class="verifier">N/A</div>
+      <div class="length-pill">N/A</div>
+    </div>
+
+    <div class="entry">
+      <div class="rank"><svg viewBox="0 0 24 24"><polygon points="12,2 22,22 2,22" fill="currentColor"/></svg>2</div>
+      <div class="level-cell">
+        <div class="thumb">N/A</div>
+        <div class="level-info">
+          <div class="level-name">Placement Holder</div>
+          <div class="level-creator">by N/A</div>
+        </div>
+      </div>
+      <div class="stat cps">peak <b>N/A</b></div>
+      <div class="stat mem"><b>N/A</b></div>
+      <div class="verifier">N/A</div>
+      <div class="length-pill">N/A</div>
+    </div>
+
+    <div class="entry">
+      <div class="rank"><svg viewBox="0 0 24 24"><polygon points="12,2 22,22 2,22" fill="currentColor"/></svg>3</div>
+      <div class="level-cell">
+        <div class="thumb">N/A</div>
+        <div class="level-info">
+          <div class="level-name">Placement Holder</div>
+          <div class="level-creator">by N/A</div>
+        </div>
+      </div>
+      <div class="stat cps">peak <b>N/A</b></div>
+      <div class="stat mem"><b>N/A</b></div>
+      <div class="verifier">N/A</div>
+      <div class="length-pill">N/A</div>
+    </div>
+
+    <div class="entry">
+      <div class="rank">4</div>
+      <div class="level-cell">
+        <div class="thumb">N/A</div>
+        <div class="level-info">
+          <div class="level-name">Placement Holder</div>
+          <div class="level-creator">by N/A</div>
+        </div>
+      </div>
+      <div class="stat cps">peak <b>N/A</b></div>
+      <div class="stat mem"><b>N/A</b></div>
+      <div class="verifier">N/A</div>
+      <div class="length-pill">N/A</div>
+    </div>
+
+    <div class="entry">
+      <div class="rank">5</div>
+      <div class="level-cell">
+        <div class="thumb">N/A</div>
+        <div class="level-info">
+          <div class="level-name">Placement Holder</div>
+          <div class="level-creator">by N/A</div>
+        </div>
+      </div>
+      <div class="stat cps">peak <b>N/A</b></div>
+      <div class="stat mem"><b>N/A</b></div>
+      <div class="verifier">N/A</div>
+      <div class="length-pill">N/A</div>
+    </div>
+
+    <div class="entry">
+      <div class="rank">6</div>
+      <div class="level-cell">
+        <div class="thumb">N/A</div>
+        <div class="level-info">
+          <div class="level-name">Placement Holder</div>
+          <div class="level-creator">by N/A</div>
+        </div>
+      </div>
+      <div class="stat cps">peak <b>N/A</b></div>
+      <div class="stat mem"><b>N/A</b></div>
+      <div class="verifier">N/A</div>
+      <div class="length-pill">N/A</div>
+    </div>
+
+    <div class="entry">
+      <div class="rank">7</div>
+      <div class="level-cell">
+        <div class="thumb">N/A</div>
+        <div class="level-info">
+          <div class="level-name">Placement Holder</div>
+          <div class="level-creator">by N/A</div>
+        </div>
+      </div>
+      <div class="stat cps">peak <b>N/A</b></div>
+      <div class="stat mem"><b>N/A</b></div>
+      <div class="verifier">N/A</div>
+      <div class="length-pill">N/A</div>
+    </div>
+
+    <div class="entry">
+      <div class="rank">8</div>
+      <div class="level-cell">
+        <div class="thumb">N/A</div>
+        <div class="level-info">
+          <div class="level-name">Placement Holder</div>
+          <div class="level-creator">by N/A</div>
+        </div>
+      </div>
+      <div class="stat cps">peak <b>N/A</b></div>
+      <div class="stat mem"><b>N/A</b></div>
+      <div class="verifier">N/A</div>
+      <div class="length-pill">N/A</div>
+    </div>
+
+  </div>
+
+  <footer>
+    <p>SILL — Short Impossible Levels List. Placement by <b style="color:var(--text-dim)">N/A</b>. Records &amp; submissions handled in Discord.</p>
+    <a class="discord-cta" href="https://discord.gg/V3xEqNBc6D" target="_blank">Join the Discord</a>
+  </footer>
+
+</div>
+
+<script>
+  const searchInput = document.getElementById('searchInput');
+  const entries = document.querySelectorAll('.entry');
+
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.trim().toLowerCase();
+    entries.forEach(entry => {
+      const name = entry.querySelector('.level-name').textContent.toLowerCase();
+      const creator = entry.querySelector('.level-creator').textContent.toLowerCase();
+      entry.style.display = (name.includes(q) || creator.includes(q)) ? '' : 'none';
+    });
+  });
+</script>
+</body>
+</html>
